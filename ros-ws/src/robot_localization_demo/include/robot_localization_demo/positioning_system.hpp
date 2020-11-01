@@ -18,7 +18,13 @@ namespace robot_localization_demo {
       ros::NodeHandle node_handle_;
       ros::Subscriber turtle_pose_subscriber_;
       ros::Publisher turtle_pose_publisher_;
+      ros::Publisher turtle_odom_publisher_;
       double frequency_;
+      double offset_x_;
+      double offset_y_;
+      double offset_theta_;
+      std::string parent_frame_id_;
+      std::string child_frame_id_;
       std::default_random_engine random_generator_;
       std::normal_distribution<double> random_distribution_x_;
       std::normal_distribution<double> random_distribution_y_;

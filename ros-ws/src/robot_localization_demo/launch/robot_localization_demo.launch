@@ -1,16 +1,54 @@
 <launch>
+  <arg name="beacon_pos_x" default="-2.0" />
+  <arg name="beacon_pos_y" default="1.0" />
+  <arg name="beacon_angle_yaw" default="0.0" />
 
   <!-- visualization node to show the real turtle, the measurements and the estimated position -->
   <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" />
+
   <!-- keyboard control for the real turtle -->
   <node pkg="turtlesim" type="turtle_teleop_key" name="teleop" output="screen" />
 
+  <!-- grouhd truth odometry -->
+  <node pkg="robot_localization_demo" type="positioning_system_node" name="turtle1_position_groundtruth"
+        args="-f 10. -x 0.0 -y 0.0 -t 0.0 -v" output="screen" >
+    <param name="parent_frame_id" type="str" value="map"/>
+    <param name="child_frame_id" type="str" value="base_link"/>
+    <param name="offset_x" type="double" value="0.0"/>
+    <param name="offset_y" type="double" value="0.0"/>
+    <remap from="turtle1/sensors/odom" to="turtle1/sensors/odom_truth" />
+    <remap from="turtle1/sensors/pose" to="turtle1/sensors/pose_truth" />
+  </node>
+  <node pkg="robot_localization_demo" type="positioning_system_node" name="turtle1_beacon_position_groundtruth"
+        args="-f 10. -x 0.0 -y 0.0 -t 0.0 -v" output="screen" >
+    <param name="parent_frame_id" type="str" value="map"/>
+    <param name="child_frame_id" type="str" value="beacon_link"/>
+    <param name="offset_x" type="double" value="$(arg beacon_pos_x)"/>
+    <param name="offset_y" type="double" value="$(arg beacon_pos_y)"/>
+    <remap from="turtle1/sensors/odom" to="turtle1/sensors/beacon/odom_truth" />
+    <remap from="turtle1/sensors/pose" to="turtle1/sensors/beacon/pose_truth" />
+  </node>
+
   <!-- 'turtle positioning system', transforming the position of the real turtle to a noisy measurement at a given frequency -->
   <node pkg="robot_localization_demo" type="positioning_system_node" name="turtle1_positioning_system_node"
-        args="-f 1. -x 0.2 -y 0.2 -t 0.2 -v" output="screen" />
+        args="-f 1. -x 0.2 -y 0.2 -t 0.2 -v" output="screen" >
+    <param name="parent_frame_id" type="str" value="map"/>
+    <param name="child_frame_id" type="str" value="beacon_link"/>
+    <param name="offset_x" type="double" value="$(arg beacon_pos_x)"/>
+    <param name="offset_y" type="double" value="$(arg beacon_pos_y)"/>
+  </node>
+
+  <node pkg = "tf2_ros" type = "static_transform_publisher" name = "bl_imu" args = "0 0 0 0 0 0 1 base_link imu_link" />
+  <node pkg = "tf2_ros" type = "static_transform_publisher" name = "bl_beacon" args = "$(arg beacon_pos_x) $(arg beacon_pos_y) 0 0 0 0 1 base_link beacon_link" />
+
+  <!--
+  <node pkg="tf" type="static_transform_publisher" name="tf_broadcaster" args="$(arg beacon_pos_x) $(arg beacon_pos_y) 0 0 0 0 base_link beacon_link 100" />
+  -->
+
   <!-- 'turtle odometry node', transforming the movements of the real turtle to a noisy measurement at a given frequency -->
   <node pkg="robot_localization_demo" type="odometry_node" name="turtle1_odometry_node"
-        args="-f 20. -x 0.05 -X 0. -t 0. -T 0.02 -v" output="screen" />
+        args="-f 20. -x 0.05 -X 0. -t 0. -T 0.02 -v" output="screen" >
+  </node>
 
   <!-- robot_localization EKF node for the odom frame -->
   <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf_node_odom" clear_params="true">
@@ -21,6 +59,7 @@
     <param name="map_frame" value="map" />
     <param name="odom_frame" value="odom" />
     <param name="base_link_frame" value="base_link" />
+    <param name="base_link_output_frame" value="base_link" />
     <param name="world_frame" value="odom" />
     <param name="print_diagnostics" value="true" />
     <remap from="odometry/filtered" to="odometry/filtered_twist" />
@@ -39,14 +78,26 @@
     <param name="publish_tf" value="true" />
     <param name="map_frame" value="map" />
     <param name="odom_frame" value="odom" />
+    <!--
+    <param name="base_link_output_frame" value="base_link" />
+    -->
+    <param name="base_link_frame" value="beacon_link" />
+    <!--
     <param name="base_link_frame" value="base_link" />
+    -->
     <param name="world_frame" value="map" />
     <param name="twist0" value="turtle1/sensors/twist" />
     <rosparam param="twist0_config">[false, false, false, false, false, false,
                                      true, true, false, false, false, true,
                                      false, false, false]</rosparam>
+    <!--
     <param name="pose0" value="turtle1/sensors/pose" />
     <rosparam param="pose0_config">[true, true, false, false, false, true,
+                                    false, false, false, false, false, false,
+                                    false, false, false]</rosparam>
+    -->
+    <param name="odom0" value="turtle1/sensors/odom" />
+    <rosparam param="odom0_config">[true, true, false, false, false, true,
                                     false, false, false, false, false, false,
                                     false, false, false]</rosparam>
     <remap from="odometry/filtered" to="odometry/filtered_map"/>
@@ -54,5 +105,8 @@
 
   <!-- transformation visualization node, visualizing the estimated position of the turtle in the map frame -->
   <node pkg="robot_localization_demo" type="transformation_visualization_node" name="transformation_visualization_node" />
+
+  <!-- rviz -->
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find robot_localization_demo)/rviz/demo.rviz" />
 
 </launch> 

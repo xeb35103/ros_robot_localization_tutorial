@@ -87,7 +87,7 @@ namespace robot_localization_demo {
       auto client = node_handle_.serviceClient<decltype(spawn_visualization_turtle)>("spawn");
       client.call(spawn_visualization_turtle);
       visualization_turtle_name_ = spawn_visualization_turtle.response.name;
-      // Set pen color to blue.
+      // Set pen color to red.
       turtlesim::SetPen configure_visualization_turtle;
       configure_visualization_turtle.request.r = 255;
       configure_visualization_turtle.request.g = 0;
