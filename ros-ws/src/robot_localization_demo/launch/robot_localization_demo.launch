@@ -7,7 +7,10 @@
   <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" />
 
   <!-- keyboard control for the real turtle -->
-  <node pkg="turtlesim" type="turtle_teleop_key" name="teleop" output="screen" />
+  <node pkg="turtlesim" type="turtle_teleop_key" name="teleop" output="screen" >
+  </node>
+  <param name="scale_angular" value="0.4" type="double"/>
+  <param name="scale_linear" value="0.4" type="double"/>
 
   <!-- grouhd truth odometry -->
   <node pkg="robot_localization_demo" type="positioning_system_node" name="turtle1_position_groundtruth"

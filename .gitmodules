@@ -1,3 +1,6 @@
 [submodule "ros-ws/src/cra-ros-pkg/robot_localization"]
 	path = ros-ws/src/cra-ros-pkg/robot_localization
 	url = https://github.com/cra-ros-pkg/robot_localization.git
+[submodule "ros-ws/src/ros_tutorials"]
+	path = ros-ws/src/ros_tutorials
+	url = https://github.com/ros/ros_tutorials.git
